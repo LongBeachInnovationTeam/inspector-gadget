@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/rossettistone/inspector-gadget.svg?branch=master)](https://travis-ci.org/rossettistone/inspector-gadget)
+[![Build Status](https://travis-ci.org/LongBeachInnovationTeam/inspector-gadget.svg?branch=master)](https://travis-ci.org/LongBeachInnovationTeam/inspector-gadget)
 [![Code Climate](https://codeclimate.com/github/rossettistone/inspector-gadget/badges/gpa.svg)](https://codeclimate.com/github/rossettistone/inspector-gadget)
 [![Test Coverage](https://codeclimate.com/github/rossettistone/inspector-gadget/badges/coverage.svg)](https://codeclimate.com/github/rossettistone/inspector-gadget/coverage)
 

@@ -27,12 +27,12 @@ ActiveAdmin.register_page "Dashboard" do
 
               }
             }
-            token = JWT.encode payload, metabase_secret_key
 
-            # For the "Inspections by Day" chart
-            iframe_url = metabase_site_url + "/embed/question/" + token + "#bordered=false&titled=false"
-            text_node %{<iframe src="#{iframe_url}" width="100%" height="400" scrolling="no" frameborder="no" allowtransparency></iframe> }.html_safe
-
+            unless Rails.env.test? # don't run in test
+              token = JWT.encode payload, metabase_secret_key
+              iframe_url = metabase_site_url + "/embed/question/" + token + "#bordered=false&titled=false"
+              text_node %{<iframe src="#{iframe_url}" width="100%" height="400" scrolling="no" frameborder="no" allowtransparency></iframe> }.html_safe
+            end
         end
 
         columns do

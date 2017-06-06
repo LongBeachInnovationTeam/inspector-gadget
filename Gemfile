@@ -41,6 +41,8 @@ gem 'rgeo-shapefile'
 gem 'devise'
 gem 'activeadmin', git: 'https://github.com/activeadmin/activeadmin'
 
+gem 'jwt'
+
 group :production do
   gem 'rails_12factor'
 end

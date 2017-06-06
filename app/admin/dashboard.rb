@@ -18,7 +18,21 @@ ActiveAdmin.register_page "Dashboard" do
         end
 
         panel "Inspections by Day" do
-            div line_chart inspections_by_day
+            metabase_site_url = Rails.application.secrets.metabase_site_url
+            metabase_secret_key = Rails.application.secrets.metabase_secret_key
+
+            payload = {
+              :resource => {:question => 13},
+              :params => {
+
+              }
+            }
+
+            unless Rails.env.test? # don't run in test
+              token = JWT.encode payload, metabase_secret_key
+              iframe_url = metabase_site_url + "/embed/question/" + token + "#bordered=false&titled=false"
+              text_node %{<iframe src="#{iframe_url}" width="100%" height="400" scrolling="no" frameborder="no" allowtransparency></iframe> }.html_safe
+            end
         end
 
         columns do

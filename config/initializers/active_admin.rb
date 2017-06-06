@@ -195,6 +195,7 @@ ActiveAdmin.setup do |config|
   #   config.register_javascript 'my_javascript.js'
 
   config.register_javascript "//www.google.com/jsapi"
+  config.register_javascript "//beachlab.herokuapp.com/app/iframeResizer.js"
 
   # == CSV options
   #

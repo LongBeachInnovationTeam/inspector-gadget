@@ -12,15 +12,6 @@
 !/log/.keep
 /tmp
 
-# Ignore extracted GIS files, but keep the ZIP source files
-/data/gis/*.dbf
-/data/gis/*.prj
-/data/gis/*.sbn
-/data/gis/*.sbx
-/data/gis/*.shp
-/data/gis/*.shp.xml
-/data/gis/*.shx
-
 # Ignore misc files
 .DS_Store
 .byebug_history

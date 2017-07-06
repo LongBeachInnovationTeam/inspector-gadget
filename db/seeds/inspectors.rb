@@ -46,8 +46,8 @@ new_email = Devise.friendly_token.first(6)
 new_password = Devise.friendly_token.first(12)
 inspector = Inspector.find_by(name: 'Mann') ||
             Inspector.create(name: 'Mann', email: "#{new_email}@example.com", password: new_password, password_confirmation: new_password)
-InspectorProfile.find_or_create_by(inspector_id: inspector.id, inspector_type: 'residential')
-                .update_attributes(inspection_assignments: ['residential_general'])
+InspectorProfile.find_or_create_by(inspector_id: inspector.id, inspector_type: 'commercial')
+                .update_attributes(inspection_assignments: %w(electric sign))
 
 new_email = Devise.friendly_token.first(6)
 new_password = Devise.friendly_token.first(12)

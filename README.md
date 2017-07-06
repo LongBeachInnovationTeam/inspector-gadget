@@ -76,7 +76,7 @@ $ docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle 
 # Running the App
 
 - You can serve the app (in development mode) by running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up`
-- You can interact with a rails console by running: `docker-compose run web rails console`
+- You can interact with a rails console by running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web rails console`
 - In order to interact with the application in development, you will need to create a test user. For example, you can achieve this by running something like `User.create!({:email => "jane.doe@longbeach.gov", :password => "hunter2", :password_confirmation => "hunter2" })` on the rails console to create your test user.
 
 # Architecture Overview
@@ -87,7 +87,7 @@ When inspections are *viewed* (e.g. on the `/inspections_print` or `/reports` pa
 
 1. An `Inspection` (see `models/inspection.rb`) calls its `inspector` method. This method gets a list of all inspectors that serve the `InspectionType` for that `Inspection` (e.g. all fire inspectors), then finds which of those inspectors is responsible for the GIS area where the `Inspection` is located.
 
-1. To get the list of inspectors for that `InspectionType`, the `Inspection` delegates delegates to a method on the `InspectionType` called `possible_inspectors`. 
+1. To get the list of inspectors for that `InspectionType`, the `Inspection` delegates delegates to a method on the `InspectionType` called `possible_inspectors`.
 
 1. The `possible_inspectors` method uses an association called `inspector_profiles` to find all the inspectors for that `InspectionType`. A couple of things to note about this association:
 
@@ -152,7 +152,7 @@ Because updating this data can have a major impact on the way the application pe
 
 ### Updating GIS Data
 
-Inspector GIS data is imported by running a rake task (defined in `lib/tasks/import.rake`) at the command line: `bundle exec rake import:inspector_regions`. The task assumes that the `B_Insp_Com.zip`, `B_Insp_Ele.zip`, and `B_Insp_Res.zip` source GIS data files are stored in `data/gis/` as one or more zip files exported from ArcGIS. These zip files contain (among other things) a shapefile (`.shp`) that the RGeo gem can ingest and store in the database. These files are provided by the City of Long Beach GIS team.
+Inspector GIS data is imported by running a rake task (defined in `lib/tasks/import.rake`) at the command line: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake import:inspector_regions`. The task assumes that the `B_Insp_Com.zip`, `B_Insp_Ele.zip`, and `B_Insp_Res.zip` source GIS data files are stored in `data/gis/` as one or more zip files exported from ArcGIS. These zip files contain (among other things) a shapefile (`.shp`) that the RGeo gem can ingest and store in the database. These files are provided by the City of Long Beach GIS team.
 
 Each layer of the shapefile must include an attribute called `INSPECTOR` with an inspector's last name. Name comparison is done with SQL `ILIKE`, so is not case sensitive.
 
@@ -162,15 +162,13 @@ Running the task will generate a report in the console that indicates which GIS 
 
 Inspection assignments are made via the `inspector` instance method on the `Inspection` model (`app/models/inspection.rb`). For speed, this method makes use of a join table (effectively a caching table) called `assignments` (model in `app/models/assignment.rb`), which makes it fast to look up which *types* of inspections each inspector handles.
 
-The `assignments` table is seeded by running `bundle exec rake db:seed:inspection_types`.
+The `assignments` table is seeded by running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake db:seed:inspection_types`.
 Because the table is built based on which inspection types inspectors handle (indicated by the `inspection_assignments` attribute on an `InspectorProfile`), it is advisable to update the and run the Inspector seeds (`db/seeds/inspectors.rb`) before seeding the `assignments` table.
 
 So a typical process for updating the assignments would be:
 
 1. Update the inspector seeds (`db/seeds/inspectors.rb`) with any assignment or personnel changes.
 1. Update the inspection_type seeds (`db/seeds/inspection_types.rb`) with any assignment changes (see `assignment_categories` attribute on each row)
-1. Run `bundle exec rake db:seed:inspectors`. This task should be idempotent, as it uses `find_or_create` for existing inspector records.
-1. Run `bundle exec rake db:seed:inspection_types`. This task should be idempotent, as it uses `find_or_create` for inspection types, and recreates the `assignments` table from scratch each time.
+1. Run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake db:seed:inspectors`. This task should be idempotent, as it uses `find_or_create` for existing inspector records.
+1. Run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake db:seed:inspection_types`. This task should be idempotent, as it uses `find_or_create` for inspection types, and recreates the `assignments` table from scratch each time.
 1. Manually delete any inspectors that might no longer be needed (e.g. if they no longer work at the City). The seeds don't delete inspectors for data safety reasons.
-
-

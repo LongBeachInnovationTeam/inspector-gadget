@@ -87,7 +87,13 @@ If this is the first time you're using Heroku's container service, you'll need t
 Further setup instructions, if needed, are available at https://devcenter.heroku.com/articles/container-registry-and-runtime
 
 Log in to Heroku's Docker container registry: `heroku container:login`
-The application can then be deployed with `heroku container:push --app <YOUR HEROKU APP NAME>`
+The application can then be deployed with `heroku container:push --app <YOUR HEROKU APP NAME>`.
+
+After deployment, you will need to seed the application instance:
+
+1. `heroku run bundle exec rake db:seed:inspectors --app <YOUR APP NAME>`
+1. `heroku run bundle exec rake db:seed:inspection_types --app <YOUR APP NAME>`
+1. `heroku run bundle exec rake import:inspector_regions --app <YOUR APP NAME>`
 
 # Architecture Overview
 
@@ -189,4 +195,4 @@ So a typical process for updating the assignments would be:
 
 #### Updating in Production
 
-If you are updating inspection type assignments in production, run something like `heroku run bundle exec rake rake db:seed:<SEED NAME> --app <YOUR HEROKU APP NAME>` from your console.
+If you are updating inspection type assignments in production, run something like `heroku run bundle exec rake db:seed:<SEED NAME> --app <YOUR HEROKU APP NAME>` from your console.

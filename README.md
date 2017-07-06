@@ -134,12 +134,12 @@ $ heroku
 
 Afterward, create a new backup of the current state of the database:
 ```bash
-$ heroku pg:backups capture --app inspector-gadget-cfa
+$ heroku pg:backups capture --app <YOUR HEROKU APP NAME>
 ```
 
 Download the dump to the project directory:
 ```bash
-$ curl -o latest.dump `heroku pg:backups public-url --app inspector-gadget-cfa`
+$ curl -o latest.dump `heroku pg:backups public-url --app <YOUR HEROKU APP NAME>`
 ```
 
 Close/terminate the web image bash session after downloading the dump.

@@ -79,6 +79,16 @@ $ docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle 
 - You can interact with a rails console by running: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web rails console`
 - In order to interact with the application in development, you will need to create a test user. For example, you can achieve this by running something like `User.create!({:email => "jane.doe@longbeach.gov", :password => "hunter2", :password_confirmation => "hunter2" })` on the rails console to create your test user.
 
+# Deploying to Heroku Container Registry and Runtime
+
+Heroku's Container Registry and Runtime is a service specifically for deploying Docker containers. Inspector Gadget's docker-compose file specifies two containers, `web` and `db`, but Heroku will simply connect the `web` container to its hosted DB service, so we only need to deploy the `web` container.
+
+If this is the first time you're using Heroku's container service, you'll need to install the plugin with `heroku plugins:install heroku-container-registry`
+Further setup instructions, if needed, are available at https://devcenter.heroku.com/articles/container-registry-and-runtime
+
+Log in to Heroku's Docker container registry: `heroku container:login`
+The application can then be deployed with `heroku container:push --app <YOUR HEROKU APP NAME>`
+
 # Architecture Overview
 
 ## How Inspections are Assigned to Inspectors
@@ -152,23 +162,31 @@ Because updating this data can have a major impact on the way the application pe
 
 ### Updating GIS Data
 
-Inspector GIS data is imported by running a rake task (defined in `lib/tasks/import.rake`) at the command line: `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake import:inspector_regions`. The task assumes that the `B_Insp_Com.zip`, `B_Insp_Ele.zip`, and `B_Insp_Res.zip` source GIS data files are stored in `data/gis/` as one or more zip files exported from ArcGIS. These zip files contain (among other things) a shapefile (`.shp`) that the RGeo gem can ingest and store in the database. These files are provided by the City of Long Beach GIS team.
+Inspector GIS data is imported by running a rake task (defined in `lib/tasks/import.rake`) at the command line: `bundle exec rake import:inspector_regions`. The task assumes that the `B_Insp_Com.zip`, `B_Insp_Ele.zip`, and `B_Insp_Res.zip` source GIS data files are stored in `data/gis/` as one or more zip files exported from ArcGIS. These zip files contain (among other things) a shapefile (`.shp`) that the RGeo gem can ingest and store in the database. These files are provided by the City of Long Beach GIS team.
 
 Each layer of the shapefile must include an attribute called `INSPECTOR` with an inspector's last name. Name comparison is done with SQL `ILIKE`, so is not case sensitive.
 
 Running the task will generate a report in the console that indicates which GIS data was assigned to an inspector. Some GIS data will not be assigned to inspectors, as it may reference Signal Hill (SH) or sections within Long Beach that belong to LA County (LAC) and are therefore not managed by Long Beach inspectors.
 
+#### Updating in Production
+
+If you are updating GIS data in production, first push the updated GIS source files via deployment then run `heroku run bundle exec rake import:inspector_regions --app <YOUR HEROKU APP NAME>` from your console.
+
 ### Updating Inspection Type Assignment Rules
 
 Inspection assignments are made via the `inspector` instance method on the `Inspection` model (`app/models/inspection.rb`). For speed, this method makes use of a join table (effectively a caching table) called `assignments` (model in `app/models/assignment.rb`), which makes it fast to look up which *types* of inspections each inspector handles.
 
-The `assignments` table is seeded by running `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake db:seed:inspection_types`.
+The `assignments` table is seeded by running `bundle exec rake db:seed:inspection_types`.
 Because the table is built based on which inspection types inspectors handle (indicated by the `inspection_assignments` attribute on an `InspectorProfile`), it is advisable to update the and run the Inspector seeds (`db/seeds/inspectors.rb`) before seeding the `assignments` table.
 
 So a typical process for updating the assignments would be:
 
 1. Update the inspector seeds (`db/seeds/inspectors.rb`) with any assignment or personnel changes.
 1. Update the inspection_type seeds (`db/seeds/inspection_types.rb`) with any assignment changes (see `assignment_categories` attribute on each row)
-1. Run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake db:seed:inspectors`. This task should be idempotent, as it uses `find_or_create` for existing inspector records.
-1. Run `docker-compose -f docker-compose.yml -f docker-compose.dev.yml run web bundle exec rake db:seed:inspection_types`. This task should be idempotent, as it uses `find_or_create` for inspection types, and recreates the `assignments` table from scratch each time.
+1. Run `bundle exec rake db:seed:inspectors`. This task should be idempotent, as it uses `find_or_create` for existing inspector records.
+1. Run `bundle exec rake db:seed:inspection_types`. This task should be idempotent, as it uses `find_or_create` for inspection types, and recreates the `assignments` table from scratch each time.
 1. Manually delete any inspectors that might no longer be needed (e.g. if they no longer work at the City). The seeds don't delete inspectors for data safety reasons.
+
+#### Updating in Production
+
+If you are updating inspection type assignments in production, run something like `heroku run bundle exec rake rake db:seed:<SEED NAME> --app <YOUR HEROKU APP NAME>` from your console.
